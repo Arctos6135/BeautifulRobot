@@ -1,0 +1,12 @@
+/DebugConfig/
+/Objects/
+/Listings/
+*.uvguix.*
+*.uvmpw.uvgui.*
+*.uvgui.*
+*.TMP
+EventRecorderStub.scvd
+.vscode/
+*.swp
+.ycm_extra_conf.py
+
