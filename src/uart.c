@@ -19,15 +19,13 @@ void UART_InterruptInit() {
 	ES = 1;
 }
 
-void (*UART_InterruptCallback) (unsigned char) = NULL;
-
+unsigned short UART_Buffer = 0;
 void UART_InterruptRoutine() interrupt 4 using 1 {
 	//Clear receive flag
 	RI = 0;
 	
-	if(UART_InterruptCallback) {
-		UART_InterruptCallback(SBUF);
-	}
+	UART_Buffer <<= 8;
+	UART_Buffer |= SBUF;
 }
 
 void UART_SendByte(unsigned char dat) {

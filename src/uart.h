@@ -6,10 +6,11 @@
 #endif
 
 void UART_Init(void);
-void UART_InitInterrupt(void);
+void UART_InterruptInit(void);
 	
 void UART_SendByte(unsigned char);
 
-extern void (*UART_InterruptCallback) (unsigned char);
+	
+extern unsigned short UART_Buffer;
 
 #endif

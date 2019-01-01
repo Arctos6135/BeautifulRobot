@@ -18,26 +18,10 @@ typedef unsigned short uint16_t;
 
 #define LED_COUNT 50
 
-//Command buffer
-uint16_t cmdBuf = 0;
-void processCmd(void);
-void UART_InterruptHandler(unsigned char dat) {
-	//UART_SendByte(dat);
-	if(cmdBuf != 0) {
-		cmdBuf <<= 8;
-		cmdBuf |= dat;
-		
-		processCmd();
-	}
-	else {
-		cmdBuf = dat;
-	}
-}
-
 uint8_t brightness = 100;
 bit dispOn = 0;
 
-void processCmd() {
+void processCmd(uint16_t cmdBuf) {
 	uint8_t cmd = cmdBuf >> 8;
 	uint8_t param = cmdBuf & 0x00FF;
 	
@@ -97,7 +81,6 @@ int main(void) {
 	
 	UART_Init();
 	UART_InterruptInit();
-	UART_InterruptCallback = UART_InterruptHandler;
 	
 	for(i = 0; i < LED_COUNT; i ++) {
 		LED_SendColor(0, 0, 0);
@@ -111,5 +94,11 @@ int main(void) {
 	colors[1].G = 0x80;
 	
 	while(1) {
+		
+		//When UART_Buffer > 0xFF, at least one bit in the first byte must be 1. Therefore 2 bytes have been received.
+		if(UART_Buffer > 0xFF) {
+			processCmd(UART_Buffer);
+			UART_Buffer = 0;
+		}
 	}
 }
