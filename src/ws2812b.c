@@ -2,13 +2,17 @@
 #include <STC/STC12C2052AD.h>
 #include <intrins.h>
 
-#define MAX(a, b) ((a < b) ? b : a)
-#define MIN(a, b) ((a > b) ? b : a)
+#ifndef MAX
+	#define MAX(a, b) ((a < b) ? b : a)
+#endif
+#ifndef MIN
+	#define MIN(a, b) ((a > b) ? b : a)
+#endif
 
 /*
  * Assumes a 12MHz clock. 
  */
-sbit LED_Data = P1 ^ 7;
+sbit LED_Data = P1 ^ 0;
 
 void LED__SendZero_(void) {
 	LED_Data = 1;
