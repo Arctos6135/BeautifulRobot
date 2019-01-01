@@ -7,6 +7,8 @@
 
 void UART_Init(void);
 void UART_InitInterrupt(void);
+	
+void UART_SendByte(unsigned char);
 
 extern void (*UART_InterruptCallback) (unsigned char);
 

@@ -21,7 +21,7 @@ void UART_InterruptInit() {
 
 void (*UART_InterruptCallback) (unsigned char) = NULL;
 
-void UART_InterruptRoutine() interrupt 4 {
+void UART_InterruptRoutine() interrupt 4 using 1 {
 	//Clear receive flag
 	RI = 0;
 	

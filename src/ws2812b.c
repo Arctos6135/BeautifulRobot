@@ -54,9 +54,8 @@ void LED_SendColor(unsigned char R, unsigned char G, unsigned char B) {
 	LED__SendByte_(B);
 }
 void LED_SendRGBData(RGBColor *colors, unsigned short count) {
-	unsigned short i;
-	for(i = 0; i < count; i ++) {
-		LED_SendRGBColor(&colors[i]);
+	while(count--) {
+		LED_SendRGBColor(colors++);
 	}
 	LED_Latch();
 }

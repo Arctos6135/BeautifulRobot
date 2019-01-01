@@ -2,7 +2,9 @@
 #include "delay.h"
 #include "ws2812b.h"
 #include "uart.h"
-#include <stdint.h>
+
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
 
 /*
  * Commands are composed of 16 bits each, with the first 8 bits denoting the action and the second 8 the parameter.
@@ -14,17 +16,18 @@
 //Param: an integer in the range 0 - 100, the percentage brightness. Default: 100%.
 #define CMD_BRIGHTNESS 0x02
 
-unsigned int LED_COUNT = 50;
+#define LED_COUNT 50
 
 //Command buffer
 uint16_t cmdBuf = 0;
-//New command flag
-bit newCmd = 0;
+void processCmd(void);
 void UART_InterruptHandler(unsigned char dat) {
-	if(cmdBuf) {
+	//UART_SendByte(dat);
+	if(cmdBuf != 0) {
 		cmdBuf <<= 8;
 		cmdBuf |= dat;
-		newCmd = 1;
+		
+		processCmd();
 	}
 	else {
 		cmdBuf = dat;
@@ -37,14 +40,14 @@ bit dispOn = 0;
 void processCmd() {
 	uint8_t cmd = cmdBuf >> 8;
 	uint8_t param = cmdBuf & 0x00FF;
-	//Clear new command flag
-	if(!newCmd)
-		return;
-	newCmd = 0;
+	
+	//UART_SendByte(cmd);
+	//UART_SendByte(param);
+	
 	//Look at the first byte
 	switch(cmd) {
 	case CMD_ENABLE:
-		dispOn = param ? 1 : 0;
+		dispOn = param;
 		break;
 	case CMD_BRIGHTNESS:
 		brightness = param;
@@ -52,6 +55,40 @@ void processCmd() {
 	default: break;
 	}
 }
+
+xdata RGBColor colors[LED_COUNT] = { 0 };
+void Timer0Init(void) { //30ms@12.000MHz
+	//Enable interrupts
+	EA = 1;
+	ET0 = 1;
+	AUXR &= 0x7F;		//Timer clock is 12T mode
+	TMOD &= 0xF0;		//Set timer work mode
+	TMOD |= 0x01;		//Set timer work mode
+	TL0 = 0xD0;		//Initial timer value
+	TH0 = 0x8A;		//Initial timer value
+	TF0 = 0;		//Clear TF0 flag
+	TR0 = 1;		//Timer0 start run
+}
+void Timer0Routine(void) interrupt 1 {
+	unsigned char i;
+	//Clear flag
+	TF0 = 0;
+	//Reset timer
+	TL0 = 0xD0;
+	TH0 = 0x8A;
+	
+	if(dispOn) {
+		LED_SendRGBData(colors, LED_COUNT);
+	}
+	else {
+		for(i = 0; i < LED_COUNT; i ++) {
+			LED_SendColor(0, 0, 0);
+		}
+		LED_Latch();
+	}
+}
+
+
 
 int main(void) {
 	unsigned char i;
@@ -66,6 +103,12 @@ int main(void) {
 		LED_SendColor(0, 0, 0);
 	}
 	LED_Latch();
+	
+	Timer0Init();
+	
+	colors[0].R = 0x80;
+	colors[0].B = 0x80;
+	colors[1].G = 0x80;
 	
 	while(1) {
 	}
