@@ -30,3 +30,5 @@ void SPI_InterruptRoutine(void) interrupt 5 {
 		SPI_InterruptCallback(SPDAT);
 	}
 }
+
+void (*SPI_InterruptCallback) (unsigned char) = NULL;

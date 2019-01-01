@@ -1,5 +1,4 @@
 #include "ws2812b.h"
-#include <STC/STC12C2052AD.h>
 #include <intrins.h>
 
 #ifndef MAX
@@ -12,7 +11,6 @@
 /*
  * Assumes a 12MHz clock. 
  */
-sbit LED_Data = P1 ^ 0;
 
 void LED__SendZero_(void) {
 	LED_Data = 1;

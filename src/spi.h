@@ -8,6 +8,6 @@
 void SPI_SlaveInit(void);
 void SPI_InterruptInit(void);
 
-void (*SPI_InterruptCallback) (unsigned char) = NULL;
+extern void (*SPI_InterruptCallback) (unsigned char);
 
 #endif

@@ -1,6 +1,10 @@
 #ifndef __WS2812B_H__
 #define __WS2812B_H__
 
+#include <STC/STC12C2052AD.h>
+
+sbit LED_Data = P1 ^ 0;
+
 typedef struct _RGBColor {
 	unsigned char R;
 	unsigned char G;

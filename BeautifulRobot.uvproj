@@ -396,6 +396,21 @@
               <FileType>5</FileType>
               <FilePath>.\src\delay.h</FilePath>
             </File>
+            <File>
+              <FileName>spi.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>spi.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\spi.h</FilePath>
+            </File>
+            <File>
+              <FileName>ws2812b.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\ws2812b.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
