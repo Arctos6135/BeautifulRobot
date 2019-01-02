@@ -2,7 +2,6 @@
 #include "delay.h"
 #include "ws2812b.h"
 #include "uart.h"
-#include <string.h>
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
@@ -18,9 +17,10 @@ typedef unsigned short uint16_t;
 #define CMD_BRIGHTNESS 	0x02
 //Mode
 //Param: an integer in the range [], the id of the mode to set to. Default: 0.
-//Mode 0: Solid color
-//Mode 1: Pulsating color
+//Mode 0: Solid
+//Mode 1: Pulsating
 //Mode 2: Rainbow
+//Mode 3: Moving Pulse
 #define CMD_MODE 		0x03
 //Color
 //Param: an integer in the range 0 - 3, the team color. 0 - red, 1 - blue, 2 - green. Default: 2.
@@ -37,6 +37,7 @@ xdata volatile RGBColor colors[LED_COUNT] = { 0 };
 xdata volatile unsigned short times[LED_COUNT] = { 0 };
 void addOverflow(unsigned int*, unsigned int, unsigned int);
 void processCmd(uint16_t cmdBuf) {
+	unsigned char i;
 	uint8_t cmd = cmdBuf >> 8;
 	uint8_t param = cmdBuf & 0x00FF;
 	
@@ -54,15 +55,16 @@ void processCmd(uint16_t cmdBuf) {
 	case CMD_MODE:
 		mode = param;
 		if(mode == 1) {
-			memset(times, 0, sizeof(unsigned short));
+			for(i = 0; i < LED_COUNT; i ++) {
+				times[i] = 0;
+			}
 		}
-		else if(mode == 2) {
+		else if(mode == 2 || mode == 3) {
 			unsigned short t = 0;
-			unsigned int i;
 			for(i = 0; i < LED_COUNT; i ++) {
 				times[LED_COUNT - 1 - i] = t;
 
-				addOverflow(&t, 0x400, 0xFFFF);
+				addOverflow(&t, mode == 2 ? 0x400 : 0x800, 0xFFFF);
 			}
 		}
 		break;
@@ -167,9 +169,20 @@ RGBColor generate2(unsigned int time) {
 	colorBuf.B = 0xFF - (time - 0x500);
 	return colorBuf;
 }
+uint8_t generate3(unsigned short time) {
+	if(time >= 0xC000) {
+		return 0xFF - ((time >> 8) - 0xC0) * 4;
+	}
+	else if(time >= 0x8000) {
+		return ((time >> 8) - 0x80) * 4;
+	}
+	else {
+		return 0;
+	}
+}
 void generateColors(void) {
 	unsigned char i;
-	//Mode 0 - Solid color
+	//Mode 0 - Solid
 	if(mode == 0) {
 		for(i = 0; i < LED_COUNT; i ++) {
 			colors[i].R = color == 0 ? BRIGHTNESS(0xFF) : 0;
@@ -177,7 +190,7 @@ void generateColors(void) {
 			colors[i].B = color == 1 ? BRIGHTNESS(0xFF) : 0;
 		}
 	}
-	//Mode 1 - Pulsating color
+	//Mode 1 - Pulsating
 	else if(mode == 1) {
 		for(i = 0; i < LED_COUNT; i ++) {
 			colors[i].R = color == 0 ? BRIGHTNESS(generate1(times[i])) : 0;
@@ -185,7 +198,7 @@ void generateColors(void) {
 			colors[i].B = color == 1 ? BRIGHTNESS(generate1(times[i])) : 0;
 		}
 	}
-	//Mode 3 - Rainbow
+	//Mode 2 - Rainbow
 	else if(mode == 2) {
 		for(i = 0; i < LED_COUNT; i ++) {
 			generate2(times[i]);
@@ -194,9 +207,16 @@ void generateColors(void) {
 			colors[i].B = BRIGHTNESS(colorBuf.B);
 		}
 	}
-	
+	//Mode 3 - Moving Pulse
+	else if(mode == 3) {
+		for(i = 0; i < LED_COUNT; i ++) {
+			colors[i].R = color == 0 ? BRIGHTNESS(generate3(times[i])) : 0;
+			colors[i].G = color == 2 ? BRIGHTNESS(generate3(times[i])) : 0;
+			colors[i].B = color == 1 ? BRIGHTNESS(generate3(times[i])) : 0;
+		}
+	}
 	for(i = 0; i < LED_COUNT; i ++) {
-		addOverflow(times + i, mode == 1 | mode == 2 ? 0x100 : 0, 0xFF);
+		addOverflow(times + i, 0x100, 0xFFFF);
 	}
 }
 
