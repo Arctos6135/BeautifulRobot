@@ -34,10 +34,9 @@ uint8_t mode = 0;
 uint8_t color = 2;
 
 xdata volatile RGBColor colors[LED_COUNT] = { 0 };
-xdata volatile unsigned short times[LED_COUNT] = { 0 };
+xdata volatile unsigned short time = 0;
 void addOverflow(unsigned int*, unsigned int, unsigned int);
 void processCmd(uint16_t cmdBuf) {
-	unsigned char i;
 	uint8_t cmd = cmdBuf >> 8;
 	uint8_t param = cmdBuf & 0x00FF;
 	
@@ -54,19 +53,7 @@ void processCmd(uint16_t cmdBuf) {
 		break;
 	case CMD_MODE:
 		mode = param;
-		if(mode == 1) {
-			for(i = 0; i < LED_COUNT; i ++) {
-				times[i] = 0;
-			}
-		}
-		else if(mode == 2 || mode == 3) {
-			unsigned short t = 0;
-			for(i = 0; i < LED_COUNT; i ++) {
-				times[LED_COUNT - 1 - i] = t;
-
-				addOverflow(&t, mode == 2 ? 0x400 : 0x800, 0xFFFF);
-			}
-		}
+		time = 0;
 		break;
 	case CMD_COLOR:
 		color = param;
@@ -180,8 +167,10 @@ uint8_t generate3(unsigned short time) {
 		return 0;
 	}
 }
+
 void generateColors(void) {
 	unsigned char i;
+	unsigned short t = time;
 	//Mode 0 - Solid
 	if(mode == 0) {
 		for(i = 0; i < LED_COUNT; i ++) {
@@ -193,31 +182,33 @@ void generateColors(void) {
 	//Mode 1 - Pulsating
 	else if(mode == 1) {
 		for(i = 0; i < LED_COUNT; i ++) {
-			colors[i].R = color == 0 ? BRIGHTNESS(generate1(times[i])) : 0;
-			colors[i].G = color == 2 ? BRIGHTNESS(generate1(times[i])) : 0;
-			colors[i].B = color == 1 ? BRIGHTNESS(generate1(times[i])) : 0;
+			colors[i].R = color == 0 ? BRIGHTNESS(generate1(t)) : 0;
+			colors[i].G = color == 2 ? BRIGHTNESS(generate1(t)) : 0;
+			colors[i].B = color == 1 ? BRIGHTNESS(generate1(t)) : 0;
 		}
 	}
 	//Mode 2 - Rainbow
 	else if(mode == 2) {
 		for(i = 0; i < LED_COUNT; i ++) {
-			generate2(times[i]);
+			generate2(t);
 			colors[i].R = BRIGHTNESS(colorBuf.R);
 			colors[i].G = BRIGHTNESS(colorBuf.G);
 			colors[i].B = BRIGHTNESS(colorBuf.B);
+			
+			addOverflow(&t, 0x400, 0xFFFF);
 		}
 	}
 	//Mode 3 - Moving Pulse
 	else if(mode == 3) {
 		for(i = 0; i < LED_COUNT; i ++) {
-			colors[i].R = color == 0 ? BRIGHTNESS(generate3(times[i])) : 0;
-			colors[i].G = color == 2 ? BRIGHTNESS(generate3(times[i])) : 0;
-			colors[i].B = color == 1 ? BRIGHTNESS(generate3(times[i])) : 0;
+			colors[i].R = color == 0 ? BRIGHTNESS(generate3(t)) : 0;
+			colors[i].G = color == 2 ? BRIGHTNESS(generate3(t)) : 0;
+			colors[i].B = color == 1 ? BRIGHTNESS(generate3(t)) : 0;
+			
+			addOverflow(&t, 0x800, 0xFFFF);
 		}
 	}
-	for(i = 0; i < LED_COUNT; i ++) {
-		addOverflow(times + i, 0x100, 0xFFFF);
-	}
+	addOverflow(&time, 0x100, 0xFFFF);
 }
 
 int main(void) {
@@ -255,6 +246,8 @@ int main(void) {
          * must be greater than 0xFFFF. Additionally, the buffer also has to end with the
          * sync byte, which has a value of 0xFF. Due to the actual size of the buffer being
          * 4 bytes, the leftmost byte in the buffer is ignored.
+         * 
+         * Concept inspired by @mincrmatt12
          */
 		if((UART_Buffer & 0x00FFFFFF) > 0xFFFF && (UART_Buffer & 0x000000FF) == 0xFF) {
 			//Right-shift 8 since we don't need the sync byte
