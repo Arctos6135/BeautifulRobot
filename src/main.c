@@ -8,6 +8,10 @@ typedef unsigned short uint16_t;
 
 /*
  * Commands are composed of 16 bits each, with the first 8 bits denoting the action and the second 8 the parameter.
+ * When they're first received, they also contain a sync byte (see the main function).
+ * 
+ * Please note that there is no error checking to make sure the parameters are correct. Thus, if the incorrect parameter
+ * was sent, the behavior is undefined.
  */
 //Display enable/disable
 //Param: an integer in the range 0 - 1, whether the display is on. 1 - on, 0 - off. Default: on.
@@ -30,8 +34,13 @@ typedef unsigned short uint16_t;
 //0 - The pulse appears to move away from the microcontroller and following the direction of the strip.
 //1 - The pulse appears to move towards the microcontroller, going against the direction of the strip.
 #define CMD_DIRECTION	0x05
+//The number of LEDs
+//Param: an integer in the range 0 - 80, the number of LEDs in the strip. Default: 80.
+//Note: This number is not intended to be changed normally. It should, ideally, be changed only when
+//the LEDs are off, as changing the number from higher to lower does not turn off any LEDs.
+#define CMD_COUNT		0x06
 
-#define LED_COUNT 80
+unsigned char LED_COUNT = 80;
 
 uint8_t brightness = 100;
 bit dispOn = 0;
@@ -39,7 +48,7 @@ uint8_t mode = 0;
 uint8_t color = 2;
 bit direction = 0;
 
-xdata volatile RGBColor colors[LED_COUNT] = { 0 };
+xdata volatile RGBColor colors[80] = { 0 };
 xdata volatile unsigned short time = 0;
 void processCmd(uint16_t cmdBuf) {
 	uint8_t cmd = cmdBuf >> 8;
@@ -66,6 +75,9 @@ void processCmd(uint16_t cmdBuf) {
 	case CMD_DIRECTION:
 		direction = param;
 		break;
+    case CMD_COUNT:
+        LED_COUNT = param;
+        break;
 	default: break;
 	}
 }
