@@ -2,6 +2,19 @@
 An 8051-based WS2812B RGB LED strip controller, interfaced with UART.
 Fully compatible with the NI roboRIO and legal in the FIRST Robotics Competition.
 
+## Schematic
+![BeautifulRobot&#8482; Schematic](https://user-images.githubusercontent.com/32781310/50624292-b26bf100-0eec-11e9-88f4-1478936dc164.png)
+
+Notes:
+* The GND pin in the UART interface only serves to provide a common ground for communications.
+* The power source should be connected to a voltage-regulated 5V power supply, such as the FRC VRM.
+* F1 is a resettable fuse that protects the power source voltage regulator in the case that the LEDs draw too much current.
+Most voltage regulators do not have a current limit high enough to support more than a meter or two of LEDs at full brightness
+(20mA per color * 3 colors * 30 LEDs per meter = 1.8A per meter). Software dimming can be used so more LEDs can be connected even
+though the voltage regulator may not be able to support all of them at full brightness. F1 makes sure that in this case, if the
+LEDs were ever accidentally turned on at full brightness, the voltage regulator will be protected. Thus, its value can be adjusted
+according to the maximum current output of the voltage regulator.
+
 ## Interface
 The BeautifulRobot&#8482; can be interfaced with via asynchronous UART.
 The baud rate is 9600, and there is no parity bit.
