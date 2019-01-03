@@ -10,7 +10,7 @@ typedef unsigned short uint16_t;
  * Commands are composed of 16 bits each, with the first 8 bits denoting the action and the second 8 the parameter.
  */
 //Display enable/disable
-//Param: whether the display is on. 1 - on, 0 - off. Default: on.
+//Param: an integer in the range 0 - 1, whether the display is on. 1 - on, 0 - off. Default: on.
 #define CMD_ENABLE 		0x01
 //Percentage brightness
 //Param: an integer in the range 0 - 100, the percentage brightness. Default: 100%.
@@ -25,17 +25,22 @@ typedef unsigned short uint16_t;
 //Color
 //Param: an integer in the range 0 - 3, the team color. 0 - red, 1 - blue, 2 - green. Default: 2.
 #define CMD_COLOR 		0x04
+//Direction of pulse
+//Param: an integer in the range 0 - 1, the "direction" of the pulse. Default: 0
+//0 - The pulse appears to move away from the microcontroller and following the direction of the strip.
+//1 - The pulse appears to move towards the microcontroller, going against the direction of the strip.
+#define CMD_DIRECTION	0x05
 
-#define LED_COUNT 60
+#define LED_COUNT 80
 
 uint8_t brightness = 100;
 bit dispOn = 0;
 uint8_t mode = 0;
 uint8_t color = 2;
+bit direction = 0;
 
 xdata volatile RGBColor colors[LED_COUNT] = { 0 };
 xdata volatile unsigned short time = 0;
-void addOverflow(unsigned int*, unsigned int, unsigned int);
 void processCmd(uint16_t cmdBuf) {
 	uint8_t cmd = cmdBuf >> 8;
 	uint8_t param = cmdBuf & 0x00FF;
@@ -57,6 +62,9 @@ void processCmd(uint16_t cmdBuf) {
 		break;
 	case CMD_COLOR:
 		color = param;
+		break;
+	case CMD_DIRECTION:
+		direction = param;
 		break;
 	default: break;
 	}
@@ -94,19 +102,6 @@ void Timer0Routine(void) interrupt 1 {
 }
 
 #define BRIGHTNESS(x) ((x) * brightness / 100)
-void addOverflow(unsigned int *a, unsigned int b, unsigned int max) {
-	//a + b > max
-	//Doing it like this prevents integer overflow
-	if(max - b < *a) {
-		//a + b - max
-		//a + (b - max)
-		//a - (max - b)
-		*a -= max - b;	
-	}
-	else {
-		*a += b;
-	}
-}
 uint8_t generate1(unsigned short time) {
 	if(time >= 0x8000) {
 		return 0xFF - ((time >> 8) - 0x80) * 2;
@@ -195,7 +190,24 @@ void generateColors(void) {
 			colors[i].G = BRIGHTNESS(colorBuf.G);
 			colors[i].B = BRIGHTNESS(colorBuf.B);
 			
-			addOverflow(&t, 0x400, 0xFFFF);
+			/*
+			 * The "time" of each LED is slightly shifted to give the impression of a pulse,
+			 * when in reality all LEDs are doing the same thing.
+			 * 
+			 * Depending on the direction, a certain amount is added to or subtracted from 
+             * the time of the previous LED to get the time of the next LED.
+             * 
+             * When the direction is forwards, the amount is subtracted. This means that LEDs
+             * closer to the beginning of the strip have higher times, which means that the
+             * pulse will be experienced by LEDs closer to the beginning first, and then
+             * propagate down.
+             * 
+             * When the direction is backwards, the amount is added. This has the opposite
+             * effect of subtracting the value.
+             */
+            //Ignore overflow/underflow
+            //According to the C standard, unsigned integer overflow is defined behavior.
+            t += direction ? 0x400 : -0x400;
 		}
 	}
 	//Mode 3 - Moving Pulse
@@ -205,10 +217,14 @@ void generateColors(void) {
 			colors[i].G = color == 2 ? BRIGHTNESS(generate3(t)) : 0;
 			colors[i].B = color == 1 ? BRIGHTNESS(generate3(t)) : 0;
 			
-			addOverflow(&t, 0x800, 0xFFFF);
+            //Ignore overflow/underflow
+            //According to the C standard, unsigned integer overflow is defined behavior.
+			t += direction ? 0x800 : -0x800;
 		}
 	}
-	addOverflow(&time, 0x100, 0xFFFF);
+    //Ignore overflow
+    //According to the C standard, unsigned integer overflow is defined behavior.
+	time += 0x100;
 }
 
 int main(void) {
