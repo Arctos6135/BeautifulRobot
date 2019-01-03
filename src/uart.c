@@ -19,7 +19,7 @@ void UART_InterruptInit() {
 	ES = 1;
 }
 
-unsigned short UART_Buffer = 0;
+unsigned long UART_Buffer = 0;
 void UART_InterruptRoutine() interrupt 4 using 1 {
 	//Clear receive flag
 	RI = 0;

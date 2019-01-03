@@ -239,9 +239,26 @@ int main(void) {
 		
 		generateColors();
 		
-		//When UART_Buffer > 0xFF, at least one bit in the first byte must be 1. Therefore 2 bytes have been received.
-		if(UART_Buffer > 0xFF) {
-			processCmd(UART_Buffer);
+		/*
+         * Check if enough bytes have been received for a valid command.
+         * 
+         * All commands consist of 3 bytes:
+         * - The operation
+         * - The parameter
+         * - The sync byte (0xFF)
+         * 
+         * The sync byte is used to make sure that if some bytes of a command were missed,
+         * the following commands would not be messed up due to the first command still
+         * being in the buffer.
+         * 
+         * There has to be at least 3 nonzero bytes in the buffer, hence the buffer's value
+         * must be greater than 0xFFFF. Additionally, the buffer also has to end with the
+         * sync byte, which has a value of 0xFF. Due to the actual size of the buffer being
+         * 4 bytes, the leftmost byte in the buffer is ignored.
+         */
+		if((UART_Buffer & 0x00FFFFFF) > 0xFFFF && (UART_Buffer & 0x000000FF) == 0xFF) {
+			//Right-shift 8 since we don't need the sync byte
+            processCmd((UART_Buffer >> 8) & 0xFFFF);
 			UART_Buffer = 0;
 		}
 	}

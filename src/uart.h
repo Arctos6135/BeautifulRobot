@@ -10,7 +10,6 @@ void UART_InterruptInit(void);
 	
 void UART_SendByte(unsigned char);
 
-	
-extern unsigned short UART_Buffer;
+extern unsigned long UART_Buffer;
 
 #endif
