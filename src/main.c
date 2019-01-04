@@ -39,14 +39,21 @@ typedef unsigned short uint16_t;
 //Note: This number is not intended to be changed normally. It should, ideally, be changed only when
 //the LEDs are off, as changing the number from higher to lower does not turn off any LEDs.
 #define CMD_COUNT		0x06
+//The speed of the patterns
+//Param: an integer in the range 0 - 255. The total speed is made of a high byte and a low byte.
+//CMD_SPEEDHIGH changes the high byte, while CMD_SPEEDLOW changes the low byte.
+#define CMD_SPEEDHIGH	0x07
+#define CMD_SPEEDLOW	0x08
 
 unsigned char LED_COUNT = 80;
 
-uint8_t brightness = 100;
-bit dispOn = 0;
-uint8_t mode = 0;
-uint8_t color = 2;
-bit direction = 0;
+volatile uint8_t brightness = 100;
+volatile bit dispOn = 0;
+volatile uint8_t mode = 0;
+volatile uint8_t color = 2;
+volatile bit direction = 0;
+volatile uint8_t speedHigh = 0x01;
+volatile uint8_t speedLow = 0x00;
 
 xdata volatile RGBColor colors[80] = { 0 };
 xdata volatile unsigned short time = 0;
@@ -78,6 +85,12 @@ void processCmd(uint16_t cmdBuf) {
     case CMD_COUNT:
         LED_COUNT = param;
         break;
+	case CMD_SPEEDHIGH:
+		speedHigh = param;
+		break;
+	case CMD_SPEEDLOW:
+		speedLow = param;
+		break;
 	default: break;
 	}
 }
@@ -236,7 +249,7 @@ void generateColors(void) {
 	}
     //Ignore overflow
     //According to the C standard, unsigned integer overflow is defined behavior.
-	time += 0x100;
+	time += (speedHigh << 8) | speedLow;
 }
 
 int main(void) {
