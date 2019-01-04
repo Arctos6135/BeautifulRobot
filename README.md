@@ -62,15 +62,23 @@ don't get affected even if a byte was missed.
 | Operation Name/Code | Operation Purpose | Parameter Range | Parameter Meaning | Default Value |
 |:-------------------:| ----------------- |:---------------:| ----------------- |:-------------:|
 | Enable/`0x01` | Turns the LEDs on/off | 0 or 1 | 0 - Off, 1 - On | 0 |
-| Brightness/`0x02` | Controls the overall brightness<sup>1</sup> | [0, 100] | The percentage brightness | 100 |
-| Mode/`0x03` | Controls the pattern to be displayed | [0, 3] | 0 - Solid Color, 1 - Pulsating Color, 2 - Rainbow, 3 - Moving Pulse | 0 |
-| Color/`0x04` | Controls the color of modes 0, 1, and 3 | [0, 2] | 0 - Red, 1 - Blue, 2 - Green | 2 |
-| Direction/`0x05` | Controls the "direction" of the pattern in modes 2 and 3 | 0 or 1 | 0 - Pulse goes in the same direction as the LED strip, 1 - Pulse goes in the reverse direction as the LED strip | 0 |
-| LED Count/`0x06` | Specifies the amount of LEDs to be controlled<sup>2</sup> | [0, 80] | The number of LEDs controlled | 80 |
+| Brightness/`0x02` | Changes the overall brightness<sup>1</sup> | [0, 100] | The percentage brightness | 100 |
+| Mode/`0x03` | Changes the pattern to be displayed | [0, 3] | 0 - Solid Color, 1 - Pulsating Color, 2 - Rainbow, 3 - Moving Pulse | 0 |
+| Color/`0x04` | Changes the color of modes 0, 1, and 3 | [0, 2] | 0 - Red, 1 - Blue, 2 - Green | 2 |
+| Direction/`0x05` | Changes the "direction" of the pattern in modes 2 and 3 | 0 or 1 | 0 - Pulse goes in the same direction as the LED strip, 1 - Pulse goes in the reverse direction as the LED strip | 0 |
+| LED Count/`0x06` | Changes the amount of LEDs to be controlled<sup>2</sup> | [0, 80] | The number of LEDs controlled | 80 |
+| Higher-Order Speed/`0x07` | Changes the speed of the patterns<sup>3</sup> | [0, 255] | The value of the higher-order byte of the speed of patterns | 1 |
+| Lower-Order Speed/`0x06` | Changes the speed of the patterns<sup>3</sup> | [0, 255] | The value of the lower-order byte of the speed of patterns | 0 |
 
 <sup>1</sup>Note that human perception of brightness is not linear, but rather logarithmic.
 This means that the difference between 20% brightness and 30% brightness is far greater than that of 80% and 90%, even though both
 have increased the brightness by 10%.\
-<sup>2</sup>The LED count should, preferably, only be modified when the LED strip is off.
+<sup>2</sup>The LED count should only be modified when the LED strip is off.
 This is because after changing from a higher number of LEDs to a lower number, even though some LEDs are no longer being controlled,
 they will still stay on. Modifying the LED count when the display is off means that the LEDs not controlled stay off.
+Additionally, changing the LED count on the fly in some modes may have undesired consequences.\
+<sup>3</sup>The speed of the patterns is specified by a 16-bit integer and thus has values in the range [0, 65535] ([`0x00`, `0xFFFF`]).
+Because parameters can only be 8 bits in size, the value of this 16-bit integer is changed with 2 different commands, Higher-Order Speed and Lower-Order Speed.
+Higher-Order Speed controls the first 8 bits, while Lower-Order Speed controls the last 8. 
+This also means that changing the Higher-Order Speed is 256x more effective than the Lower-Order Speed.
+The default for this speed value is 256, or `0x100` (since the higher order byte is 1 and the lower order byte is 0).
