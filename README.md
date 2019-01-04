@@ -68,7 +68,8 @@ don't get affected even if a byte was missed.
 | Direction/`0x05` | Changes the "direction" of the pattern in modes 2 and 3 | 0 or 1 | 0 - Pulse goes in the same direction as the LED strip, 1 - Pulse goes in the reverse direction as the LED strip | 0 |
 | LED Count/`0x06` | Changes the amount of LEDs to be controlled<sup>2</sup> | [0, 80] | The number of LEDs controlled | 80 |
 | Higher-Order Speed/`0x07` | Changes the speed of the patterns<sup>3</sup> | [0, 255] | The value of the higher-order byte of the speed of patterns | 1 |
-| Lower-Order Speed/`0x06` | Changes the speed of the patterns<sup>3</sup> | [0, 255] | The value of the lower-order byte of the speed of patterns | 0 |
+| Lower-Order Speed/`0x08` | Changes the speed of the patterns<sup>3</sup> | [0, 255] | The value of the lower-order byte of the speed of patterns | 0 |
+| Reset/`0x09` | Resets the BeautifulRobot&#8482;, causing all settings such as brightness to be reset back to the default. | N/A ([0, 255]) | N/A | N/A |
 
 <sup>1</sup>Note that human perception of brightness is not linear, but rather logarithmic.
 This means that the difference between 20% brightness and 30% brightness is far greater than that of 80% and 90%, even though both
