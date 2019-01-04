@@ -44,6 +44,9 @@ typedef unsigned short uint16_t;
 //CMD_SPEEDHIGH changes the high byte, while CMD_SPEEDLOW changes the low byte.
 #define CMD_SPEEDHIGH	0x07
 #define CMD_SPEEDLOW	0x08
+//Resets the BeautifulRobot. All properties (e.g. brightness, color) will be reset back to the default.
+//Param: none
+#define CMD_RESET		0x09
 
 unsigned char LED_COUNT = 80;
 
@@ -90,6 +93,10 @@ void processCmd(uint16_t cmdBuf) {
 		break;
 	case CMD_SPEEDLOW:
 		speedLow = param;
+		break;
+	case CMD_RESET:
+		//Cast 0x0000 into a function pointer and call it to reset everything
+		((void (code *) (void)) 0x0000) ();
 		break;
 	default: break;
 	}

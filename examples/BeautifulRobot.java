@@ -26,7 +26,7 @@ public class BeautifulRobot {
     enum Operation {
 
         ENABLE(0x01), BRIGHTNESS(0x02), MODE(0x03), COLOR(0x04), DIRECTION(0x05), LED_COUNT(0x06),
-        SPEED_HIGH(0x07), SPEED_LOW(0x08);
+        SPEED_HIGH(0x07), SPEED_LOW(0x08), RESET(0x09);
 
         private byte code;
         Operation(int code) {
