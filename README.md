@@ -15,9 +15,21 @@ though the voltage regulator may not be able to support all of them at full brig
 LEDs were ever accidentally turned on at full brightness, the voltage regulator will be protected. Thus, its value can be adjusted
 according to the maximum current output of the voltage regulator.
 
+## Finished Circuit
+![Finished Circuit](https://user-images.githubusercontent.com/32781310/50739594-d19aa500-11b0-11e9-973e-fcf7403f7e3e.jpg)
+
+Notes:
+* The pin header at the top-right is the UART interface.
+* The 3-pin connector at the bottom-right connects to the WS2812B.
+* The red and black wires seen in this picture connect to the power source.
+* The back of this circuit is not covered; it may need insulation when placed on a metal surface.
+
 ## Interface
 The BeautifulRobot&#8482; can be interfaced with via asynchronous UART.
-The baud rate is 9600, and there is no parity bit.
+* Baud Rate: 9600
+* Data Bits: 8
+* Parity Bit: None
+* Stop Bits: 1
 
 ***Please note that due to hardware limitations, there must be a 50ms+ delay between the sending of each byte.
 Otherwise, some bytes may be missed, leading to a defunct command.***
