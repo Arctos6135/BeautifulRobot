@@ -3,7 +3,7 @@ An 8051-based WS2812B RGB LED strip controller, interfaced with UART.
 Fully compatible with the NI roboRIO and legal in the FIRST Robotics Competition.
 
 ## Schematic
-![BeautifulRobot&#8482; Schematic](https://user-images.githubusercontent.com/32781310/50731982-9eb7c900-113e-11e9-8620-07459cced676.png)
+![Schematic](https://user-images.githubusercontent.com/32781310/50739488-3b19b400-11af-11e9-90dc-13c8eeac2b61.png)
 
 Notes:
 * The GND pin in the UART interface only serves to provide a common ground for communications.
