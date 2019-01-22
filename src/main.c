@@ -46,7 +46,7 @@ typedef unsigned short uint16_t;
 #define CMD_SPEEDLOW 0x08
 //Resets the BeautifulRobot. All properties (e.g. brightness, color) will be reset back to the default.
 //Param: none
-#define CMD_RESET 0x09
+#define CMD_RESET 0xff
 
 unsigned char LED_COUNT = 80;
 
