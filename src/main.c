@@ -15,38 +15,38 @@ typedef unsigned short uint16_t;
  */
 //Display enable/disable
 //Param: an integer in the range 0 - 1, whether the display is on. 1 - on, 0 - off. Default: on.
-#define CMD_ENABLE 		0x01
+#define CMD_ENABLE 0x01
 //Percentage brightness
 //Param: an integer in the range 0 - 100, the percentage brightness. Default: 100%.
-#define CMD_BRIGHTNESS 	0x02
+#define CMD_BRIGHTNESS 0x02
 //Mode
 //Param: an integer in the range [], the id of the mode to set to. Default: 0.
 //Mode 0: Solid
 //Mode 1: Pulsating
 //Mode 2: Rainbow
 //Mode 3: Moving Pulse
-#define CMD_MODE 		0x03
+#define CMD_MODE 0x03
 //Color
 //Param: an integer in the range 0 - 3, the team color. 0 - red, 1 - blue, 2 - green. Default: 2.
-#define CMD_COLOR 		0x04
+#define CMD_COLOR 0x04
 //Direction of pulse
 //Param: an integer in the range 0 - 1, the "direction" of the pulse. Default: 0
 //0 - The pulse appears to move away from the microcontroller and following the direction of the strip.
 //1 - The pulse appears to move towards the microcontroller, going against the direction of the strip.
-#define CMD_DIRECTION	0x05
+#define CMD_DIRECTION 0x05
 //The number of LEDs
 //Param: an integer in the range 0 - 80, the number of LEDs in the strip. Default: 80.
 //Note: This number is not intended to be changed normally. It should, ideally, be changed only when
 //the LEDs are off, as changing the number from higher to lower does not turn off any LEDs.
-#define CMD_COUNT		0x06
+#define CMD_COUNT 0x06
 //The speed of the patterns
 //Param: an integer in the range 0 - 255. The total speed is made of a high byte and a low byte.
 //CMD_SPEEDHIGH changes the high byte, while CMD_SPEEDLOW changes the low byte.
-#define CMD_SPEEDHIGH	0x07
-#define CMD_SPEEDLOW	0x08
+#define CMD_SPEEDHIGH 0x07
+#define CMD_SPEEDLOW 0x08
 //Resets the BeautifulRobot. All properties (e.g. brightness, color) will be reset back to the default.
 //Param: none
-#define CMD_RESET		0x09
+#define CMD_RESET 0x09
 
 unsigned char LED_COUNT = 80;
 
@@ -58,17 +58,19 @@ volatile bit direction = 0;
 volatile uint8_t speedHigh = 0x01;
 volatile uint8_t speedLow = 0x00;
 
-xdata volatile RGBColor colors[80] = { 0 };
+xdata volatile RGBColor colors[80] = {0};
 xdata volatile unsigned short time = 0;
-void processCmd(uint16_t cmdBuf) {
+void processCmd(uint16_t cmdBuf)
+{
 	uint8_t cmd = cmdBuf >> 8;
 	uint8_t param = cmdBuf & 0x00FF;
-	
+
 	UART_SendByte(cmd);
 	UART_SendByte(param);
-	
+
 	//Look at the first byte
-	switch(cmd) {
+	switch (cmd)
+	{
 	case CMD_ENABLE:
 		dispOn = param;
 		break;
@@ -85,9 +87,9 @@ void processCmd(uint16_t cmdBuf) {
 	case CMD_DIRECTION:
 		direction = param;
 		break;
-    case CMD_COUNT:
-        LED_COUNT = param;
-        break;
+	case CMD_COUNT:
+		LED_COUNT = param;
+		break;
 	case CMD_SPEEDHIGH:
 		speedHigh = param;
 		break;
@@ -96,83 +98,98 @@ void processCmd(uint16_t cmdBuf) {
 		break;
 	case CMD_RESET:
 		//Cast 0x0000 into a function pointer and call it to reset everything
-		((void (code *) (void)) 0x0000) ();
+		((void(code *)(void))0x0000)();
 		break;
-	default: break;
+	default:
+		break;
 	}
 }
 
-void Timer0Init(void) { //30ms@12.000MHz
+void Timer0Init(void)
+{ //30ms@12.000MHz
 	//Enable interrupts
 	EA = 1;
 	ET0 = 1;
-	AUXR &= 0x7F;		//Timer clock is 12T mode
-	TMOD &= 0xF0;		//Set timer work mode
-	TMOD |= 0x01;		//Set timer work mode
-	TL0 = 0xD0;		//Initial timer value
-	TH0 = 0x8A;		//Initial timer value
-	TF0 = 0;		//Clear TF0 flag
-	TR0 = 1;		//Timer0 start run
+	AUXR &= 0x7F; //Timer clock is 12T mode
+	TMOD &= 0xF0; //Set timer work mode
+	TMOD |= 0x01; //Set timer work mode
+	TL0 = 0xD0;   //Initial timer value
+	TH0 = 0x8A;   //Initial timer value
+	TF0 = 0;	  //Clear TF0 flag
+	TR0 = 1;	  //Timer0 start run
 }
-void Timer0Routine(void) interrupt 1 {
+void Timer0Routine(void) interrupt 1
+{
 	unsigned char i;
 	//Reset timer
 	TL0 = 0xD0;
 	TH0 = 0x8A;
 	//Clear flag
 	TF0 = 0;
-	
-	if(dispOn) {
+
+	if (dispOn)
+	{
 		LED_SendRGBData(colors, LED_COUNT);
 	}
-	else {
-		for(i = 0; i < LED_COUNT; i ++) {
+	else
+	{
+		for (i = 0; i < LED_COUNT; i++)
+		{
 			LED_SendColor(0, 0, 0);
 		}
 		LED_Latch();
 	}
 }
 
-#define BRIGHTNESS(x) ((x) * brightness / 100)
-uint8_t generate1(unsigned short time) {
-	if(time >= 0x8000) {
+#define BRIGHTNESS(x) ((x)*brightness / 100)
+uint8_t generate1(unsigned short time)
+{
+	if (time >= 0x8000)
+	{
 		return 0xFF - ((time >> 8) - 0x80) * 2;
 	}
-	else {
+	else
+	{
 		return (time >> 8) * 2;
 	}
 }
 RGBColor colorBuf;
-RGBColor generate2(unsigned int time) {
+RGBColor generate2(unsigned int time)
+{
 	time /= 42;
 
 	time = time > 0x5FF ? 0x5FF : time;
 
-	if(time < 0x100) {
+	if (time < 0x100)
+	{
 		colorBuf.R = 0xFF;
 		colorBuf.G = time;
 		colorBuf.B = 0;
 		return colorBuf;
 	}
-	if(time < 0x200) {
+	if (time < 0x200)
+	{
 		colorBuf.R = 0xFF - (time - 0x100);
 		colorBuf.G = 0xFF;
 		colorBuf.B = 0;
 		return colorBuf;
 	}
-	if(time < 0x300) {
+	if (time < 0x300)
+	{
 		colorBuf.R = 0;
 		colorBuf.G = 0xFF;
-		colorBuf.B = time - 0x200;	
+		colorBuf.B = time - 0x200;
 		return colorBuf;
 	}
-	if(time < 0x400) {
+	if (time < 0x400)
+	{
 		colorBuf.R = 0;
 		colorBuf.G = 0xFF - (time - 0x300);
 		colorBuf.B = 0xFF;
 		return colorBuf;
 	}
-	if(time < 0x500) {
+	if (time < 0x500)
+	{
 		colorBuf.R = time - 0x400;
 		colorBuf.G = 0;
 		colorBuf.B = 0xFF;
@@ -183,45 +200,56 @@ RGBColor generate2(unsigned int time) {
 	colorBuf.B = 0xFF - (time - 0x500);
 	return colorBuf;
 }
-uint8_t generate3(unsigned short time) {
-	if(time >= 0xC000) {
+uint8_t generate3(unsigned short time)
+{
+	if (time >= 0xC000)
+	{
 		return 0xFF - ((time >> 8) - 0xC0) * 4;
 	}
-	else if(time >= 0x8000) {
+	else if (time >= 0x8000)
+	{
 		return ((time >> 8) - 0x80) * 4;
 	}
-	else {
+	else
+	{
 		return 0;
 	}
 }
 
-void generateColors(void) {
+void generateColors(void)
+{
 	unsigned char i;
 	unsigned short t = time;
 	//Mode 0 - Solid
-	if(mode == 0) {
-		for(i = 0; i < LED_COUNT; i ++) {
+	if (mode == 0)
+	{
+		for (i = 0; i < LED_COUNT; i++)
+		{
 			colors[i].R = color == 0 ? BRIGHTNESS(0xFF) : 0;
 			colors[i].G = color == 2 ? BRIGHTNESS(0xFF) : 0;
 			colors[i].B = color == 1 ? BRIGHTNESS(0xFF) : 0;
 		}
 	}
 	//Mode 1 - Pulsating
-	else if(mode == 1) {
-		for(i = 0; i < LED_COUNT; i ++) {
+	else if (mode == 1)
+	{
+		for (i = 0; i < LED_COUNT; i++)
+		{
 			colors[i].R = color == 0 ? BRIGHTNESS(generate1(t)) : 0;
 			colors[i].G = color == 2 ? BRIGHTNESS(generate1(t)) : 0;
 			colors[i].B = color == 1 ? BRIGHTNESS(generate1(t)) : 0;
 		}
 	}
 	//Mode 2 - Rainbow
-	else if(mode == 2) {
-		for(i = 0; i < LED_COUNT; i ++) {
+	else if (mode == 2)
+	{
+		for (i = 0; i < LED_COUNT; i++)
+		{
 			generate2(t);
 			colors[i].R = BRIGHTNESS(colorBuf.R);
 			colors[i].G = BRIGHTNESS(colorBuf.G);
 			colors[i].B = BRIGHTNESS(colorBuf.B);
-			
+
 			/*
 			 * The "time" of each LED is slightly shifted to give the impression of a pulse,
 			 * when in reality all LEDs are doing the same thing.
@@ -237,47 +265,52 @@ void generateColors(void) {
              * When the direction is backwards, the amount is added. This has the opposite
              * effect of subtracting the value.
              */
-            //Ignore overflow/underflow
-            //According to the C standard, unsigned integer overflow is defined behavior.
-            t += direction ? 0x400 : -0x400;
+			//Ignore overflow/underflow
+			//According to the C standard, unsigned integer overflow is defined behavior.
+			t += direction ? 0x400 : -0x400;
 		}
 	}
 	//Mode 3 - Moving Pulse
-	else if(mode == 3) {
-		for(i = 0; i < LED_COUNT; i ++) {
+	else if (mode == 3)
+	{
+		for (i = 0; i < LED_COUNT; i++)
+		{
 			colors[i].R = color == 0 ? BRIGHTNESS(generate3(t)) : 0;
 			colors[i].G = color == 2 ? BRIGHTNESS(generate3(t)) : 0;
 			colors[i].B = color == 1 ? BRIGHTNESS(generate3(t)) : 0;
-			
-            //Ignore overflow/underflow
-            //According to the C standard, unsigned integer overflow is defined behavior.
+
+			//Ignore overflow/underflow
+			//According to the C standard, unsigned integer overflow is defined behavior.
 			t += direction ? 0x800 : -0x800;
 		}
 	}
-    //Ignore overflow
-    //According to the C standard, unsigned integer overflow is defined behavior.
+	//Ignore overflow
+	//According to the C standard, unsigned integer overflow is defined behavior.
 	time += (speedHigh << 8) | speedLow;
 }
 
-int main(void) {
+int main(void)
+{
 	unsigned char i;
 	LED_Data = 0;
 	delay(200);
-	
+
 	UART_Init();
 	UART_InterruptInit();
-	
-	for(i = 0; i < LED_COUNT; i ++) {
+
+	for (i = 0; i < LED_COUNT; i++)
+	{
 		LED_SendColor(0, 0, 0);
 	}
 	LED_Latch();
-	
+
 	Timer0Init();
-	
-	while(1) {
-		
+
+	while (1)
+	{
+
 		generateColors();
-		
+
 		/*
          * Check if enough bytes have been received for a valid command.
          * 
@@ -297,9 +330,10 @@ int main(void) {
          * 
          * Concept inspired by @mincrmatt12
          */
-		if((UART_Buffer & 0x00FFFFFF) > 0xFFFF && (UART_Buffer & 0x000000FF) == 0xFF) {
+		if ((UART_Buffer & 0x00FFFFFF) > 0xFFFF && (UART_Buffer & 0x000000FF) == 0xFF)
+		{
 			//Right-shift 8 since we don't need the sync byte
-            processCmd((UART_Buffer >> 8) & 0xFFFF);
+			processCmd((UART_Buffer >> 8) & 0xFFFF);
 			UART_Buffer = 0;
 		}
 	}
