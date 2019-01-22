@@ -44,6 +44,9 @@ typedef unsigned short uint16_t;
 //CMD_SPEEDHIGH changes the high byte, while CMD_SPEEDLOW changes the low byte.
 #define CMD_SPEEDHIGH 0x07
 #define CMD_SPEEDLOW 0x08
+// Set the value of the register with least significant and most significant bits
+#define REG_SETVALUE_MSB 0x09
+#define REG_SETVALUE_LSB 0x0A
 //Resets the BeautifulRobot. All properties (e.g. brightness, color) will be reset back to the default.
 //Param: none
 #define CMD_RESET 0xff
@@ -57,6 +60,8 @@ volatile uint8_t color = 2;
 volatile bit direction = 0;
 volatile uint8_t speedHigh = 0x01;
 volatile uint8_t speedLow = 0x00;
+
+volatile uint16_t reg = 0;
 
 xdata volatile RGBColor colors[80] = {0};
 xdata volatile unsigned short time = 0;
@@ -95,6 +100,12 @@ void processCmd(uint16_t cmdBuf)
 		break;
 	case CMD_SPEEDLOW:
 		speedLow = param;
+		break;
+	case REG_SETVALUE_LSB:
+		reg = param | (reg >> 8) << 8;
+		break;
+	case REG_SETVALUE_MSB:
+		reg = param << 8 | (reg << 8) >> 8;
 		break;
 	case CMD_RESET:
 		//Cast 0x0000 into a function pointer and call it to reset everything
