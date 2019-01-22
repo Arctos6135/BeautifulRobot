@@ -25,6 +25,7 @@ typedef unsigned short uint16_t;
 //Mode 1: Pulsating
 //Mode 2: Rainbow
 //Mode 3: Moving Pulse
+//Mode 4: Status bar/Meter
 #define CMD_MODE 0x03
 //Color
 //Param: an integer in the range 0 - 3, the team color. 0 - red, 1 - blue, 2 - green. Default: 2.
@@ -294,6 +295,22 @@ void generateColors(void)
 			//According to the C standard, unsigned integer overflow is defined behavior.
 			t += direction ? 0x800 : -0x800;
 		}
+	}
+	//Mode 4 - Progress bar
+	else if (mode == 4)
+	{
+		char ledsToLight = LED_COUNT / (reg >> 8);
+		// Light all the LEDS up to that point using the normal brightness
+		for (i = 0; i < ledsToLight; i++)
+		{
+			colors[i].R = color == 0 ? BRIGHTNESS(0xFF) : 0;
+			colors[i].G = color == 2 ? BRIGHTNESS(0xFF) : 0;
+			colors[i].B = color == 1 ? BRIGHTNESS(0xFF) : 0;
+		}
+		// Light the last LED up based on the progress
+		colors[i].R = color == 0 ? BRIGHTNESS((reg << 8) >> 8) : 0;
+		colors[i].G = color == 2 ? BRIGHTNESS((reg << 8) >> 8) : 0;
+		colors[i].B = color == 1 ? BRIGHTNESS((reg << 8) >> 8) : 0;
 	}
 	//Ignore overflow
 	//According to the C standard, unsigned integer overflow is defined behavior.
