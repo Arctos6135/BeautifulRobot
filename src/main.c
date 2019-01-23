@@ -64,8 +64,8 @@ typedef unsigned short uint16_t;
 #define CMD_RESET 0x09
 // Set the value of the register with least significant and most significant
 // bits
-#define REG_SETVALUE_MSB 0x0A
-#define REG_SETVALUE_LSB 0x0B
+#define CMD_REG_MSB 0x0A
+#define CMD_REG_LSB 0x0B
 
 unsigned char LED_COUNT = 80;
 
@@ -115,10 +115,10 @@ void processCmd(uint16_t cmdBuf) {
 	case CMD_SPEEDLOW:
 		speedLow = param;
 		break;
-	case REG_SETVALUE_LSB:
+	case CMD_REG_LSB:
 		reg = reg & 0xff00 | param;
 		break;
-	case REG_SETVALUE_MSB:
+	case CMD_REG_MSB:
 		reg = reg & 0x00ff | param;
 		break;
 	case CMD_RESET:
