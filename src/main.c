@@ -26,7 +26,7 @@ typedef unsigned short uint16_t;
 // Percentage brightness
 // Param: an integer in the range 0 - 100, the percentage brightness.
 // Default:
-// 100%.
+// 16%.
 #define CMD_BRIGHTNESS 0x02
 // Mode
 // Param: an integer in the range [], the id of the mode to set to.
@@ -69,7 +69,7 @@ typedef unsigned short uint16_t;
 
 unsigned char LED_COUNT = 80;
 
-volatile uint8_t brightness = 100;
+volatile uint8_t brightness = 16;
 volatile bit dispOn = 0;
 volatile uint8_t mode = 0;
 volatile uint8_t color = 2;

@@ -74,7 +74,7 @@ don't get affected even if a byte was missed.
 | Operation Name/Code | Operation Purpose | Parameter Range | Parameter Meaning | Default Value |
 |:-------------------:| ----------------- |:---------------:| ----------------- |:-------------:|
 | Enable/`0x01` | Turns the LEDs on/off | 0 or 1 | 0 - Off, 1 - On | 0 |
-| Brightness/`0x02` | Changes the overall brightness<sup>1</sup> | [0, 100] | The percentage brightness | 100 |
+| Brightness/`0x02` | Changes the overall brightness<sup>1</sup> | [0, 100] | The percentage brightness | 16 |
 | Mode/`0x03` | Changes the pattern to be displayed | [0, 4] | 0 - Solid Color, 1 - Pulsating Color, 2 - Rainbow, 3 - Moving Pulse, 4 - Progress Bar/Meter | 0 |
 | Color/`0x04` | Changes the color of modes 0, 1, 3 and 4 | [0, 2] | 0 - Red, 1 - Blue, 2 - Green | 2 |
 | Direction/`0x05` | Changes the "direction" of the pattern in modes 2 and 3 | 0 or 1 | 0 - Pulse goes in the same direction as the LED strip, 1 - Pulse goes in the reverse direction as the LED strip | 0 |
