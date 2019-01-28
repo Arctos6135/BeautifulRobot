@@ -219,19 +219,17 @@ uint8_t generate3(unsigned short time) {
 	}
 }
 
-// // Draws a point that fades to 0 at distance. It gets cut of by the ends
-// void drawPoint(unsigned char position, unsigned char distance) {
-// 	unsigned char dropoff = 0xFF / distance;
-// 	if (i > 0) {
-// 		// I know it's beautiful
-// 		for (char i = position - distance > position ? 0 : position - distance;
-// 		     i < (position + distance < position ? LED_COUNT : position + distance); i++) {
-// 			colors[i].R = color == 0 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
-// 			colors[i].G = color == 2 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
-// 			colors[i].B = color == 1 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
-// 		}
-// 	}
-// }
+// Draws a point that fades to 0 at distance. It gets cut of by the ends
+void drawPoint(unsigned char position, unsigned char distance) {
+	unsigned char dropoff = 0xFF / distance;
+	// I know it's beautiful
+    for (char i = position - distance > position ? 0 : position - distance;
+            i < (position + distance < position ? LED_COUNT : position + distance); i++) {
+        colors[i].R = color == 0 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+        colors[i].G = color == 2 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+        colors[i].B = color == 1 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+    }
+}
 
 void generateColors(void) {
 	unsigned char i;
