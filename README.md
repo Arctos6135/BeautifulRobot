@@ -31,6 +31,13 @@ The BeautifulRobot&#8482; can be interfaced with via asynchronous UART.
 * Parity Bit: None
 * Stop Bits: 1
 
+Note: The BeautifulRobot&#8482; uses TTL Serial, not RS-232. In order to interface the roboRIO, the UART interface cannot be 
+directly connected to the RS-232 port. Use one of the following:
+* An RS-232 to TTL Serial adapter between the roboRIO's RS-232 and the BeautifulRobot&#8482;'s UART interface
+* Use the TTL Serial port in the roboRIO's MXP connector (pins 10 and 14):<br><img src="http://forums.ni.com/legacyfs/online/179472_roboRIO+Pin+Out.png" alt="UART.TX=14, UART.RX=10" width="300px"/>
+* Or use an USB-to-UART adapter between the roboRIO's USB port and the BeautifulRobot&#8482;'s UART interface
+
+
 ***Please note that due to hardware limitations, there must be a 50ms+ delay between the sending of each byte.
 Otherwise, some bytes may be missed, leading to a defunct command.***
 
@@ -76,7 +83,7 @@ don't get affected even if a byte was missed.
 | Enable/`0x01` | Turns the LEDs on/off | 0 or 1 | 0 - Off, 1 - On | 0 |
 | Brightness/`0x02` | Changes the overall brightness<sup>1</sup> | [0, 100] | The percentage brightness | 16 |
 | Mode/`0x03` | Changes the pattern to be displayed | [0, 4] | 0 - Solid Color, 1 - Pulsating Color, 2 - Rainbow, 3 - Moving Pulse, 4 - Progress Bar/Meter | 0 |
-| Color/`0x04` | Changes the color of modes 0, 1, 3 and 4 | [0, 2] | 0 - Red, 1 - Blue, 2 - Green | 2 |
+| Color/`0x04` | Changes the color of modes 0, 1, 3 and 4 | [0, 2] | 0 - Red, 1 - Blue, 2 - Green, 3 - Yellow | 2 |
 | Direction/`0x05` | Changes the "direction" of the pattern in modes 2 and 3 | 0 or 1 | 0 - Pulse goes in the same direction as the LED strip, 1 - Pulse goes in the reverse direction as the LED strip | 0 |
 | LED Count/`0x06` | Changes the amount of LEDs to be controlled<sup>2</sup> | [0, 80] | The number of LEDs controlled | 80 |
 | Speed MSB/`0x07` | Changes the speed of the patterns<sup>3</sup> | [0, 255] | The value of the most significant byte of the speed of patterns | 1 |
