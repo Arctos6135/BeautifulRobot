@@ -232,8 +232,8 @@ void drawPoint(unsigned char position, unsigned char distance) {
     unsigned char i = position - distance > position ? 0 : position - distance;
 	// I know it's beautiful
     for (; i < (position + distance < position ? LED_COUNT : position + distance); i++) {
-        colors[i].R = color == CC_RED ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
-        colors[i].G = color == CC_GREEN ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+        colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+        colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
         colors[i].B = color == CC_BLUE ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
     }
 }
