@@ -229,9 +229,9 @@ uint8_t generate3(unsigned short time) {
 // Draws a point that fades to 0 at distance. It gets cut of by the ends
 void drawPoint(unsigned char position, unsigned char distance) {
 	unsigned char dropoff = 0xFF / distance;
+    unsigned char i = position - distance > position ? 0 : position - distance;
 	// I know it's beautiful
-    for (char i = position - distance > position ? 0 : position - distance;
-            i < (position + distance < position ? LED_COUNT : position + distance); i++) {
+    for (; i < (position + distance < position ? LED_COUNT : position + distance); i++) {
         colors[i].R = color == CC_RED ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
         colors[i].G = color == CC_GREEN ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
         colors[i].B = color == CC_BLUE ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
