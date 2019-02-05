@@ -67,6 +67,13 @@ typedef unsigned short uint16_t;
 #define CMD_REG_MSB 0x0A
 #define CMD_REG_LSB 0x0B
 
+typedef enum _ColorCode {
+    CC_RED = 0,
+    CC_BLUE = 1,
+    CC_GREEN = 2,
+    CC_YELLOW = 3,
+} ColorCode;
+
 unsigned char LED_COUNT = 80;
 
 volatile uint8_t brightness = 16;
@@ -225,9 +232,9 @@ void drawPoint(unsigned char position, unsigned char distance) {
 	// I know it's beautiful
     for (char i = position - distance > position ? 0 : position - distance;
             i < (position + distance < position ? LED_COUNT : position + distance); i++) {
-        colors[i].R = color == 0 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
-        colors[i].G = color == 2 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
-        colors[i].B = color == 1 ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+        colors[i].R = color == CC_RED ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+        colors[i].G = color == CC_GREEN ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
+        colors[i].B = color == CC_BLUE ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
     }
 }
 
@@ -237,17 +244,17 @@ void generateColors(void) {
 	// Mode 0 - Solid
 	if (mode == 0) {
 		for (i = 0; i < LED_COUNT; i++) {
-			colors[i].R = color == 0 ? BRIGHTNESS(0xFF) : 0;
-			colors[i].G = color == 2 ? BRIGHTNESS(0xFF) : 0;
-			colors[i].B = color == 1 ? BRIGHTNESS(0xFF) : 0;
+			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
+			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
+			colors[i].B = color == CC_BLUE ? BRIGHTNESS(0xFF) : 0;
 		}
 	}
 	// Mode 1 - Pulsating
 	else if (mode == 1) {
 		for (i = 0; i < LED_COUNT; i++) {
-			colors[i].R = color == 0 ? BRIGHTNESS(generate1(t)) : 0;
-			colors[i].G = color == 2 ? BRIGHTNESS(generate1(t)) : 0;
-			colors[i].B = color == 1 ? BRIGHTNESS(generate1(t)) : 0;
+			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(generate1(t)) : 0;
+			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(generate1(t)) : 0;
+			colors[i].B = color == CC_BLUE ? BRIGHTNESS(generate1(t)) : 0;
 		}
 	}
 	// Mode 2 - Rainbow
@@ -283,9 +290,9 @@ void generateColors(void) {
 	// Mode 3 - Moving Pulse
 	else if (mode == 3) {
 		for (i = 0; i < LED_COUNT; i++) {
-			colors[i].R = color == 0 ? BRIGHTNESS(generate3(t)) : 0;
-			colors[i].G = color == 2 ? BRIGHTNESS(generate3(t)) : 0;
-			colors[i].B = color == 1 ? BRIGHTNESS(generate3(t)) : 0;
+			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(generate3(t)) : 0;
+			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(generate3(t)) : 0;
+			colors[i].B = color == CC_BLUE ? BRIGHTNESS(generate3(t)) : 0;
 
 			// Ignore overflow/underflow
 			// According to the C standard, unsigned integer overflow is
@@ -299,14 +306,14 @@ void generateColors(void) {
 		char ledsToLight = LED_COUNT / (reg >> 8);
 		// Light all the LEDS up to that point using the normal brightness
 		for (i = 0; i < ledsToLight; i++) {
-			colors[i].R = color == 0 ? BRIGHTNESS(0xFF) : 0;
-			colors[i].G = color == 2 ? BRIGHTNESS(0xFF) : 0;
-			colors[i].B = color == 1 ? BRIGHTNESS(0xFF) : 0;
+			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
+			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
+			colors[i].B = color == CC_BLUE ? BRIGHTNESS(0xFF) : 0;
 		}
 		// Light the last LED up based on the progress
-		colors[i].G = color == 2 ? BRIGHTNESS(reg & 0x00ff) : 0;
-		colors[i].B = color == 1 ? BRIGHTNESS(reg & 0x00ff) : 0;
-		colors[i].R = color == 0 ? BRIGHTNESS(reg & 0x00ff) : 0;
+		colors[i].G = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(reg & 0x00ff) : 0;
+		colors[i].B = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(reg & 0x00ff) : 0;
+		colors[i].R = color == CC_BLUE ? BRIGHTNESS(reg & 0x00ff) : 0;
 	}
 	// Ignore overflow
 	// According to the C standard, unsigned integer overflow is defined
