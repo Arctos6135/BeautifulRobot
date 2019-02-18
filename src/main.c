@@ -254,11 +254,18 @@ void drawPoint(unsigned char position, unsigned char distance) {
     }
 }
 
-RGBColor getCurrentColor(uint8_t brightness) {
+RGBColor getCurrentColor(uint8_t br) {
 	RGBColor c;
-	c.R = color == CC_RED || color == CC_YELLOW || color == CC_PURPLE ? BRIGHTNESS(brightness) : 0;
-	c.G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(brightness) : 0;
-	c.B = color == CC_BLUE || color == CC_PURPLE ? BRIGHTNESS(brightness) : 0;
+	uint8_t b = BRIGHTNESS(br);
+	if(color == CC_CUSTOM) {
+		c.R = BRIGHTNESS(customColor.R * br / 0xFF);
+		c.G = BRIGHTNESS(customColor.G * br / 0xFF);
+		c.B = BRIGHTNESS(customColor.B * br / 0xFF);
+		return c;
+	}
+	c.R = color == CC_RED || color == CC_YELLOW || color == CC_PURPLE ? b : 0;
+	c.G = color == CC_GREEN || color == CC_YELLOW ? b : 0;
+	c.B = color == CC_BLUE || color == CC_PURPLE ? b : 0;
 	return c;
 }
 void generateColors(void) {
