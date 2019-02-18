@@ -72,6 +72,7 @@ typedef enum _ColorCode {
     CC_BLUE = 1,
     CC_GREEN = 2,
     CC_YELLOW = 3,
+    CC_PURPLE = 4,
 } ColorCode;
 
 unsigned char LED_COUNT = 80;
@@ -238,23 +239,30 @@ void drawPoint(unsigned char position, unsigned char distance) {
     }
 }
 
+RGBColor getCurrentColor(uint8_t brightness) {
+	RGBColor c;
+	c.R = color == CC_RED || color == CC_YELLOW || color == CC_PURPLE ? BRIGHTNESS(0xFF) : 0;
+	c.G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
+	c.B = color == CC_BLUE || color == CC_PURPLE ? BRIGHTNESS(0xFF) : 0;
+	return c;
+}
 void generateColors(void) {
 	unsigned char i;
 	unsigned short t = time;
 	// Mode 0 - Solid
 	if (mode == 0) {
+		RGBColor c;
+		c = getCurrentColor(0xFF);
 		for (i = 0; i < LED_COUNT; i++) {
-			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
-			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
-			colors[i].B = color == CC_BLUE ? BRIGHTNESS(0xFF) : 0;
+			colors[i] = c;
 		}
 	}
 	// Mode 1 - Pulsating
 	else if (mode == 1) {
+		RGBColor c;
+		c = getCurrentColor(generate1(t));
 		for (i = 0; i < LED_COUNT; i++) {
-			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(generate1(t)) : 0;
-			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(generate1(t)) : 0;
-			colors[i].B = color == CC_BLUE ? BRIGHTNESS(generate1(t)) : 0;
+			colors[i] = c;
 		}
 	}
 	// Mode 2 - Rainbow
@@ -290,9 +298,7 @@ void generateColors(void) {
 	// Mode 3 - Moving Pulse
 	else if (mode == 3) {
 		for (i = 0; i < LED_COUNT; i++) {
-			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(generate3(t)) : 0;
-			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(generate3(t)) : 0;
-			colors[i].B = color == CC_BLUE ? BRIGHTNESS(generate3(t)) : 0;
+			colors[i] = getCurrentColor(generate3(t));
 
 			// Ignore overflow/underflow
 			// According to the C standard, unsigned integer overflow is
@@ -304,16 +310,16 @@ void generateColors(void) {
 	// Mode 4 - Progress bar
 	else if (mode == 4) {
 		unsigned char ledsToLight = (reg >> 8);
+		RGBColor c;
+		RGBColor c2;
+		c = getCurrentColor(0xFF);
+		c2 = getCurrentColor(reg & 0x00FF);
 		// Light all the LEDS up to that point using the normal brightness
 		for (i = 0; i < ledsToLight; i++) {
-			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
-			colors[i].G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
-			colors[i].B = color == CC_BLUE ? BRIGHTNESS(0xFF) : 0;
+			colors[i] = c;
 		}
 		// Light the last LED up based on the progress
-		colors[i].G = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(reg & 0x00ff) : 0;
-		colors[i].B = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(reg & 0x00ff) : 0;
-		colors[i].R = color == CC_BLUE ? BRIGHTNESS(reg & 0x00ff) : 0;
+		colors[i] = c2;
 	}
 	// Ignore overflow
 	// According to the C standard, unsigned integer overflow is defined
