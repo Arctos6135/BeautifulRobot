@@ -126,7 +126,7 @@ void processCmd(uint16_t cmdBuf) {
 		reg = reg & 0xff00 | param;
 		break;
 	case CMD_REG_MSB:
-		reg = reg & 0x00ff | param;
+		reg = reg & 0x00ff | param << 8;
 		break;
 	case CMD_RESET:
 		// Cast 0x0000 into a function pointer and call it to reset everything
@@ -303,7 +303,7 @@ void generateColors(void) {
 	}
 	// Mode 4 - Progress bar
 	else if (mode == 4) {
-		char ledsToLight = LED_COUNT / (reg >> 8);
+		unsigned char ledsToLight = (reg >> 8);
 		// Light all the LEDS up to that point using the normal brightness
 		for (i = 0; i < ledsToLight; i++) {
 			colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
