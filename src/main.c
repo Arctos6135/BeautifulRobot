@@ -66,6 +66,10 @@ typedef unsigned short uint16_t;
 // bits
 #define CMD_REG_MSB 0x0A
 #define CMD_REG_LSB 0x0B
+// Set the RGB value of the custom colour
+#define CMD_COLOR_R 0x0C
+#define CMD_COLOR_G 0x0D
+#define CMD_COLOR_B 0x0E
 
 typedef enum _ColorCode {
     CC_RED = 0,
@@ -73,6 +77,7 @@ typedef enum _ColorCode {
     CC_GREEN = 2,
     CC_YELLOW = 3,
     CC_PURPLE = 4,
+	CC_CUSTOM = 5,
 } ColorCode;
 
 unsigned char LED_COUNT = 80;
@@ -84,6 +89,7 @@ volatile uint8_t color = 2;
 volatile bit direction = 0;
 volatile uint8_t speedHigh = 0x01;
 volatile uint8_t speedLow = 0x00;
+volatile RGBColor customColor = { 0x00, 0x00, 0x00 };
 
 volatile uint16_t reg = 0;
 
@@ -128,6 +134,15 @@ void processCmd(uint16_t cmdBuf) {
 		break;
 	case CMD_REG_MSB:
 		reg = reg & 0x00ff | param << 8;
+		break;
+	case CMD_COLOR_R:
+		customColor.R = param;
+		break;
+	case CMD_COLOR_G:
+		customColor.G = param;
+		break;
+	case CMD_COLOR_B:
+		customColor.B = param;
 		break;
 	case CMD_RESET:
 		// Cast 0x0000 into a function pointer and call it to reset everything
@@ -241,9 +256,9 @@ void drawPoint(unsigned char position, unsigned char distance) {
 
 RGBColor getCurrentColor(uint8_t brightness) {
 	RGBColor c;
-	c.R = color == CC_RED || color == CC_YELLOW || color == CC_PURPLE ? BRIGHTNESS(0xFF) : 0;
-	c.G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(0xFF) : 0;
-	c.B = color == CC_BLUE || color == CC_PURPLE ? BRIGHTNESS(0xFF) : 0;
+	c.R = color == CC_RED || color == CC_YELLOW || color == CC_PURPLE ? BRIGHTNESS(brightness) : 0;
+	c.G = color == CC_GREEN || color == CC_YELLOW ? BRIGHTNESS(brightness) : 0;
+	c.B = color == CC_BLUE || color == CC_PURPLE ? BRIGHTNESS(brightness) : 0;
 	return c;
 }
 void generateColors(void) {
