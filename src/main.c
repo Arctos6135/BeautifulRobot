@@ -6,6 +6,8 @@
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 
+sbit LED = P1 ^ 7;
+
 // Thanks @Swordfish
 #define FASTABS(c) (c ^ -(c < 0)) + (c < 0)
 
@@ -172,6 +174,13 @@ void Timer0Routine(void) interrupt 1 {
 	TH0 = 0x8A;
 	// Clear flag
 	TF0 = 0;
+	
+	if(!UART_Buffer) {
+		LED = !LED;
+	}
+	else {
+		LED = 0;
+	}
 
 	if (dispOn) {
 		LED_SendRGBData(colors, LED_COUNT);
@@ -352,6 +361,7 @@ void generateColors(void) {
 int main(void) {
 	unsigned char i;
 	LED_Data = 0;
+	LED = 0;
 	delay(200);
 
 	UART_Init();
