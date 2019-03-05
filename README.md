@@ -3,7 +3,7 @@ An 8051-based WS2812B RGB LED strip controller, interfaced with UART.
 Fully compatible with the NI roboRIO and legal in the FIRST Robotics Competition.
 
 ## Schematic
-![Schematic](https://user-images.githubusercontent.com/32781310/50739488-3b19b400-11af-11e9-90dc-13c8eeac2b61.png)
+![Schematic](https://user-images.githubusercontent.com/32781310/53777455-6f67d300-3ec7-11e9-91d1-d0fbd99abdd7.png)
 
 Notes:
 * The GND pin in the UART interface only serves to provide a common ground for communications.
@@ -14,9 +14,6 @@ Most voltage regulators do not have a current limit high enough to support more 
 though the voltage regulator may not be able to support all of them at full brightness. F1 makes sure that in this case, if the
 LEDs were ever accidentally turned on at full brightness, the voltage regulator will be protected. Thus, its value can be adjusted
 according to the maximum current output of the voltage regulator.
-
-## Finished Circuit
-![Finished Circuit](https://user-images.githubusercontent.com/32781310/50739594-d19aa500-11b0-11e9-973e-fcf7403f7e3e.jpg)
 
 Notes:
 * The pin header at the top-right is the UART interface.
