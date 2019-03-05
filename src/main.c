@@ -33,7 +33,7 @@ sbit LED = P1 ^ 7;
 // Mode
 // Param: an integer in the range [], the id of the mode to set to.
 // Default: 0. 	Mode 0: Solid 	Mode 1: Pulsating 	Mode 2: Rainbow 	Mode 3:
-// Moving Pulse 	Mode 4: Status bar/Meter
+// Moving Pulse 	Mode 4: Status bar/Meter	Mode 5: Rainbow 2
 #define CMD_MODE 0x03
 // Color
 // Param: an integer in the range 0 - 3, the team color. 0 - red, 1 - blue,
@@ -82,7 +82,7 @@ typedef enum _ColorCode {
 	CC_CUSTOM = 5,
 } ColorCode;
 
-unsigned char LED_COUNT = 80;
+uint8_t LED_COUNT = 80;
 
 volatile uint8_t brightness = 16;
 volatile bit dispOn = 0;
@@ -96,7 +96,7 @@ volatile RGBColor customColor = { 0x00, 0x00, 0x00 };
 volatile uint16_t reg = 0;
 
 xdata volatile RGBColor colors[80] = {0};
-xdata volatile unsigned short time = 0;
+xdata volatile uint16_t time = 0;
 void processCmd(uint16_t cmdBuf) {
 	uint8_t cmd = cmdBuf >> 8;
 	uint8_t param = cmdBuf & 0x00FF;
@@ -168,7 +168,7 @@ void Timer0Init(void) { // 30ms@12.000MHz
 	TR0 = 1;      // Timer0 start run
 }
 void Timer0Routine(void) interrupt 1 {
-	unsigned char i;
+	uint8_t i;
 	// Reset timer
 	TL0 = 0xD0;
 	TH0 = 0x8A;
@@ -193,7 +193,7 @@ void Timer0Routine(void) interrupt 1 {
 }
 
 #define BRIGHTNESS(x) ((x) * brightness / 100)
-uint8_t generate1(unsigned short time) {
+uint8_t generate1(uint16_t time) {
 	if (time >= 0x8000) {
 		return 0xFF - ((time >> 8) - 0x80) * 2;
 	} else {
@@ -201,7 +201,7 @@ uint8_t generate1(unsigned short time) {
 	}
 }
 RGBColor colorBuf;
-RGBColor generate2(unsigned int time) {
+void generate2(unsigned int time) {
 	time /= 42;
 
 	time = time > 0x5FF ? 0x5FF : time;
@@ -210,38 +210,37 @@ RGBColor generate2(unsigned int time) {
 		colorBuf.R = 0xFF;
 		colorBuf.G = time;
 		colorBuf.B = 0;
-		return colorBuf;
+		return;
 	}
 	if (time < 0x200) {
 		colorBuf.R = 0xFF - (time - 0x100);
 		colorBuf.G = 0xFF;
 		colorBuf.B = 0;
-		return colorBuf;
+		return;
 	}
 	if (time < 0x300) {
 		colorBuf.R = 0;
 		colorBuf.G = 0xFF;
 		colorBuf.B = time - 0x200;
-		return colorBuf;
+		return;
 	}
 	if (time < 0x400) {
 		colorBuf.R = 0;
 		colorBuf.G = 0xFF - (time - 0x300);
 		colorBuf.B = 0xFF;
-		return colorBuf;
+		return;
 	}
 	if (time < 0x500) {
 		colorBuf.R = time - 0x400;
 		colorBuf.G = 0;
 		colorBuf.B = 0xFF;
-		return colorBuf;
+		return;
 	}
 	colorBuf.R = 0xFF;
 	colorBuf.G = 0;
 	colorBuf.B = 0xFF - (time - 0x500);
-	return colorBuf;
 }
-uint8_t generate3(unsigned short time) {
+uint8_t generate3(uint16_t time) {
 	if (time >= 0xC000) {
 		return 0xFF - ((time >> 8) - 0xC0) * 4;
 	} else if (time >= 0x8000) {
@@ -250,11 +249,56 @@ uint8_t generate3(unsigned short time) {
 		return 0;
 	}
 }
+void generate4(uint16_t time) {
+    if(time < 0x1000) {
+        colorBuf.R = 0xFF;
+        colorBuf.G = 0x00;
+        colorBuf.B = 0x00;
+    }
+    else if(time >= 0x2000 && time < 0x3000) {
+        colorBuf.R = 0xFF;
+        colorBuf.G = 0x80;
+        colorBuf.B = 0x00;
+    }
+    else if(time >= 0x4000 && time < 0x5000) {
+        colorBuf.R = 0xFF;
+        colorBuf.G = 0xFF;
+        colorBuf.B = 0x00;
+    }
+    else if(time >= 0x6000 && time < 0x7000) {
+        colorBuf.R = 0x00;
+        colorBuf.G = 0xFF;
+        colorBuf.B = 0x00;
+    }
+    else if(time >= 0x8000 && time < 0x9000) {
+        colorBuf.R = 0x00;
+        colorBuf.G = 0xFF;
+        colorBuf.B = 0xB0;
+    }
+    else if(time >= 0xA000 && time < 0xB000) {
+        colorBuf.R = 0x00;
+        colorBuf.G = 0x00;
+        colorBuf.B = 0xFF;
+    }
+    else if(time >= 0xC000 && time < 0xD000) {
+        colorBuf.R = 0x80;
+        colorBuf.G = 0x00;
+        colorBuf.B = 0xFF;
+    }
+    else if(time >= 0xE000 && time < 0xF000) {
+        colorBuf.R = 0xFF;
+        colorBuf.G = 0x00;
+        colorBuf.B = 0x60;
+    }
+    else {
+        colorBuf.R = colorBuf.G = colorBuf.B = 0x00;
+    }
+}
 
 // Draws a point that fades to 0 at distance. It gets cut of by the ends
-void drawPoint(unsigned char position, unsigned char distance) {
-	unsigned char dropoff = 0xFF / distance;
-    unsigned char i = position - distance > position ? 0 : position - distance;
+void drawPoint(uint8_t position, uint8_t distance) {
+	uint8_t dropoff = 0xFF / distance;
+    uint8_t i = position - distance > position ? 0 : position - distance;
 	// I know it's beautiful
     for (; i < (position + distance < position ? LED_COUNT : position + distance); i++) {
         colors[i].R = color == CC_RED || color == CC_YELLOW ? BRIGHTNESS(255 - dropoff * FASTABS(position - i)) : 0;
@@ -278,8 +322,8 @@ RGBColor getCurrentColor(uint8_t br) {
 	return c;
 }
 void generateColors(void) {
-	unsigned char i;
-	unsigned short t = time;
+	uint8_t i;
+	uint16_t t = time;
 	// Mode 0 - Solid
 	if (mode == 0) {
 		RGBColor c;
@@ -340,7 +384,7 @@ void generateColors(void) {
 	}
 	// Mode 4 - Progress bar
 	else if (mode == 4) {
-		unsigned char ledsToLight = (reg >> 8);
+		uint8_t ledsToLight = (reg >> 8);
 		RGBColor c;
 		RGBColor c2;
 		c = getCurrentColor(0xFF);
@@ -352,6 +396,19 @@ void generateColors(void) {
 		// Light the last LED up based on the progress
 		colors[i] = c2;
 	}
+    else if(mode == 5) {
+        for (i = 0; i < LED_COUNT; i++) {
+            generate4(t);
+        colors[i].R = BRIGHTNESS(colorBuf.R);
+        colors[i].G = BRIGHTNESS(colorBuf.G);
+        colors[i].B = BRIGHTNESS(colorBuf.B);
+            // Ignore overflow/underflow
+            // According to the C standard, unsigned integer overflow is
+            // defined
+            // behavior.
+            t += direction ? 0x300 : -0x300;
+        }
+    }
 	// Ignore overflow
 	// According to the C standard, unsigned integer overflow is defined
 	// behavior.
@@ -359,7 +416,7 @@ void generateColors(void) {
 }
 
 int main(void) {
-	unsigned char i;
+	uint8_t i;
 	LED_Data = 0;
 	LED = 0;
 	delay(200);
