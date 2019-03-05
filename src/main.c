@@ -241,13 +241,18 @@ void generate2(unsigned int time) {
 	colorBuf.B = 0xFF - (time - 0x500);
 }
 uint8_t generate3(uint16_t time) {
-	if (time >= 0xC000) {
-		return 0xFF - ((time >> 8) - 0xC0) * 4;
-	} else if (time >= 0x8000) {
-		return ((time >> 8) - 0x80) * 4;
-	} else {
-		return 0;
-	}
+    uint8_t a;
+    if(time < 0x4000) {
+        return 0;
+    }
+    else if(time < 0xA000) {
+        a = (time >> 8) - 0x40;
+        return a >= 0x40 ? 0xFF : a * 4;
+    }
+    else {
+        a = (time >> 8) - 0xA0;
+        return a < 0x20 ? 0xFF : 0xFF - (a - 0x20) * 4;
+    }
 }
 void generate4(uint16_t time) {
     if(time < 0x1000) {
